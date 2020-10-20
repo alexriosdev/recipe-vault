@@ -6,7 +6,3 @@ task :console do
   ActiveRecord::Base.logger = Logger.new(STDOUT)
   Pry.start
 end
-desc 'say hello'
-task :hello do
-  puts "hello"
-end
