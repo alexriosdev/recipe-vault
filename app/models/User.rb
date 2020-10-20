@@ -1,6 +1,6 @@
 class User < ActiveRecord::Base
-  
-  has_many :recipes
-  has_many :ingridients, through: :recipes
+
+  has_many :favorites
+  has_many :recipes, through: :favorites 
 
 end

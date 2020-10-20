@@ -29,5 +29,5 @@ Recipe Vault is a CLI platform that allows users to create, save and share recip
 ### Ingridient
 * Ingridient will be stored in a database
   * Ingridient will contain a name
-* Ingridient will have a many to many relationship with Ingridient
+* Ingridient will have a many to many relationship with Recipe
 
