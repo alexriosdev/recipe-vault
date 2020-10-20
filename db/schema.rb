@@ -29,7 +29,7 @@ ActiveRecord::Schema.define(version: 5) do
   create_table "recipes", force: :cascade do |t|
     t.string "name"
     t.string "description"
-    t.string "instructions"
+    t.string "preparation"
   end
 
   create_table "users", force: :cascade do |t|

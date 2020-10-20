@@ -5,44 +5,37 @@ Ingredient.destroy_all
 Recipe.destroy_all
 User.destroy_all
 
-i1 = Ingredient.create(name: "Eggs")
-i2 = Ingredient.create(name: "Ham")
-i3 = Ingredient.create(name: "Bacon")
-i4 = Ingredient.create(name: "Green ink")
+10.times do
+  Ingredient.create( name: Faker::Food.ingredient )
+end
 
-r1 = Recipe.create(
-  name: "Eggs and Ham", 
-  description: "Yummy yummy it fills up the tummy",
-  instructions: "Put Eggs and Ham in a pan & heat it up!",
-)
+10.times do
+  Recipe.create(
+    name: Faker::Food.dish, 
+    description: Faker::Food.description,
+    preparation: " ",
+  )
+end
 
-r2 = Recipe.create(
-  name: "Green Eggs and Ham", 
-  description: "Yuck!",
-  instructions: "Mix Eggs, Ham and Ink.",
-)
-  
-r3 = Recipe.create(
-  name: "Eggs and Bacon", 
-  description: "This is bad for your heart!",
-  instructions: "Put Eggs and Bacon a pan & heat it up!",
-)
+10.times do
+  RecipeIngredient.create(
+    recipe_id: rand(1..10),
+    ingredient_id: rand(1..10)
+  )
+end
 
-# Recipe Associations
-a1 = RecipeIngredient.create(recipe_id: r1.id, ingredient_id: i1.id)
-a2 = RecipeIngredient.create(recipe_id: r1.id, ingredient_id: i2.id)
-a3 = RecipeIngredient.create(recipe_id: r2.id, ingredient_id: i1.id)
-a4 = RecipeIngredient.create(recipe_id: r2.id, ingredient_id: i2.id)
-a5 = RecipeIngredient.create(recipe_id: r2.id, ingredient_id: i4.id)
-a6 = RecipeIngredient.create(recipe_id: r3.id, ingredient_id: i1.id)
-a7 = RecipeIngredient.create(recipe_id: r3.id, ingredient_id: i3.id)    
-  
-u1 = User.create(username: "Jon Snow", password: "123")
-u2 = User.create(username: "Rob Stark", password: "123")
+10.times do
+  User.create(
+    username: Faker::Name.unique.name,
+    password: Faker::IDNumber.valid
+  )
+end
 
-# User Associations
-f1 = Favorite.create(user_id: u1.id, recipe_id: r1.id)
-f2 = Favorite.create(user_id: u1.id, recipe_id: r2.id)
-f3 = Favorite.create(user_id: u2.id, recipe_id: r3.id)
+10.times do
+  Favorite.create(
+    user_id: rand(1..10),
+    recipe_id: rand(1..10)
+  )
+end
 
-binding.pry
+# binding.pry

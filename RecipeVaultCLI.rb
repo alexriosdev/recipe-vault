@@ -1,9 +1,18 @@
 require_relative './config/environment'
 
 class RecipeVaultCLI
+  
+  def run
+    welcome_message
+    list_recipes
+    list_users
+    list_ingredients
+  end
+
+  # WRITE LOGIG METHODS BELOW
+  private
 
   def welcome_message
-    # puts " "
     puts "
 
     ██╗    ██╗███████╗██╗      ██████╗ ██████╗ ███╗   ███╗███████╗    ████████╗ ██████╗     
@@ -21,7 +30,6 @@ class RecipeVaultCLI
                                                                                             
     
     "
-    # puts " "
   end
 
   def list_recipes
@@ -54,20 +62,19 @@ class RecipeVaultCLI
     puts "===========      End        ========="
   end
 
-  # def delete_a_book
-  #   puts "Select the id of the book that you wanna delete:"
-  #   book_id = gets.chomp
-  #   @book = Book.find_by(id: book_id)
-  #   @book.destroy
+  # EARCH TESTING
+  def search_by_id
+    puts "Input the id of the recipe you want to search: "
+    recipe_id = gets.chomp
+    result = Recipe.find_by(id: recipe_id)
+    puts result.inspect.split(",")
+  end
 
-  #   list_recipes
-  # end
-
-  def run
-    welcome_message
-    list_recipes
-    list_users
-    list_ingredients
+  def search_by_name
+    puts "Input the name of the recipe you want to search: "
+    recipe_name = gets.chomp
+    result = Recipe.find_by(name: recipe_name)
+    puts result.inspect.split(",")
   end
 
 end
