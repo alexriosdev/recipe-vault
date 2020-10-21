@@ -1,12 +1,11 @@
 require_relative './config/environment'
 
-class RecipeVaultCLI
+class Main
   
   def run
+    # binding.pry
     welcome_message
-    list_recipes
-    list_users
-    list_ingredients
+    start_menu
   end
 
   # WRITE LOGIG METHODS BELOW
@@ -29,17 +28,118 @@ class RecipeVaultCLI
     ╚═╝  ╚═╝╚══════╝ ╚═════╝╚═╝╚═╝     ╚══════╝      ╚═══╝  ╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚═╝    
                                                                                             
     
-    "
+    ".colorize(:light_blue)
   end
 
-  def list_recipes
-    puts "=========== List of Recipes ========="
+  def page_divider
+    puts "_____________________________________________________".colorize(:green)
+  end
 
-    Recipe.all.each do |recipe|
-        puts "#{recipe.id}: #{recipe.name}"
+  # INTERFACE METHODS
+
+  def start_menu
+    prompt = TTY::Prompt.new()
+    welcome =  "\nWelcome to Recipe Vault!".colorize(:light_blue)
+    user_choice = prompt.select(welcome, [
+        "Login",
+        "Search Recipe", 
+        "Exit!"
+    ])
+    case user_choice
+    when "Login"
+      login_prompt
+    when "Search Recipe"
+      search_recipe
+    else
+      puts "BYE BYE"
     end
+  end
 
-    puts "===========      End        ========="
+  def login_prompt
+    page_divider
+    prompt = TTY::Prompt.new()
+    response = prompt.ask("\nPlease enter a username: ").downcase
+    @user = User.find_or_create_by(username: response)
+    sleep(1)
+    user_menu
+  end
+
+  def user_menu
+    page_divider
+    prompt = TTY::Prompt.new()
+    puts "\nHello there, #{@user.username}!"
+    query = "What would you like to do?".colorize(:yellow)
+    user_choice = prompt.select(query, [
+        "Display All Recipes",
+        "Display Favorite Recipes",
+        "Create Recipe",
+        "Search Recipe", 
+        "Exit!"
+    ])
+    case user_choice
+    when "Display All Recipes"
+      list_all_recipes
+    when "Display Favorite Recipes"
+      list_favorite_recipes
+    when "Create New Recipe"
+      create_new_recipe
+    when "Search Recipe"
+      search_recipe
+    else
+      puts "BYE BYE"
+    end
+  end
+
+  def list_all_recipes
+    page_divider
+
+    prompt = TTY::Prompt.new() 
+    all_recipes = Recipe.all.map { |recipe| recipe.name }
+
+    puts "\nOkay #{@user.username}."
+    query =  "Here is a list of all the recipes:\n".colorize(:yellow)
+    recipe_name = prompt.select(query, all_recipes)
+    @recipe_object = Recipe.all.find_by(name: recipe_name)
+
+    # add method to go back in the menu?
+
+    # recipe_ingredient_association
+    show_recipe_details    
+  end
+
+  def show_recipe_details
+    page_divider
+    puts "\n#{@recipe_object.name} Recipe".colorize(:yellow)
+    puts "\nDescription: \n#{@recipe_object.description}"
+    puts "\nPreparation: \n#{@recipe_object.preparation}"
+
+    # puts "\nIngredients: \n#{@ingredient_object.name}"
+    # DUE TO USING RANDOM NUMBERS AS IDS
+    # UNABLE TO DISPLAY CORRECT INGREDIENT ASSOCIATION
+    
+    # SAVE RECIPE TO FAVORITES
+
+    user_menu
+  end
+
+  def recipe_ingredient_association
+    ri = RecipeIngredient.find_by(recipe_id: @recipe_object.id)
+    @ingredient_object = Ingredient.find_by(id: ri.ingredient_id)
+  end
+
+  def list_favorite_recipes
+    puts "\nSTAY TUNED. FEATURE COMMING SOON.".colorize(:red)
+    user_menu
+  end
+
+  def create_new_recipe
+    puts "\nSTAY TUNED. FEATURE COMMING SOON.".colorize(:red)
+    user_menu
+  end
+
+  def search_recipe
+    puts "\nSTAY TUNED. FEATURE COMMING SOON.".colorize(:red)
+    start_menu
   end
 
   def list_users
@@ -79,4 +179,4 @@ class RecipeVaultCLI
 
 end
 
-RecipeVaultCLI.new.run
+Main.new.run

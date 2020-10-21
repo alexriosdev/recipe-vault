@@ -13,7 +13,7 @@ end
   Recipe.create(
     name: Faker::Food.dish, 
     description: Faker::Food.description,
-    preparation: " ",
+    preparation: Faker::Lorem.paragraph(sentence_count: 2),
   )
 end
 
@@ -26,7 +26,7 @@ end
 
 10.times do
   User.create(
-    username: Faker::Name.unique.name,
+    username: Faker::Name.unique.first_name.downcase,
     password: Faker::IDNumber.valid
   )
 end
