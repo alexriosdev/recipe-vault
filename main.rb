@@ -103,7 +103,7 @@ class Main
 
     # add method to go back in the menu?
 
-    # recipe_ingredient_association
+    recipe_ingredient_association
     show_recipe_details    
   end
 
@@ -112,19 +112,32 @@ class Main
     puts "\n#{@recipe_object.name} Recipe".colorize(:yellow)
     puts "\nDescription: \n#{@recipe_object.description}"
     puts "\nPreparation: \n#{@recipe_object.preparation}"
+    puts "\nIngredients: "
+    @ingredient_object.each { |ingredient| puts "#{ingredient.name}"}
 
     # puts "\nIngredients: \n#{@ingredient_object.name}"
-    # DUE TO USING RANDOM NUMBERS AS IDS
-    # UNABLE TO DISPLAY CORRECT INGREDIENT ASSOCIATION
-    
-    # SAVE RECIPE TO FAVORITES
 
+    # SAVE RECIPE TO FAVORITES METHOD
     user_menu
   end
 
   def recipe_ingredient_association
-    ri = RecipeIngredient.find_by(recipe_id: @recipe_object.id)
-    @ingredient_object = Ingredient.find_by(id: ri.ingredient_id)
+    # this method only finds ONE object
+    # ri = RecipeIngredient.find_by(recipe_id: @recipe_object.id)
+    
+    # returns array of objects
+    ri_objects = RecipeIngredient.where(recipe_id: @recipe_object.id)
+
+    # store ingredient ids in array
+    i_array = ri_objects.each.map{ |ingredient| ingredient.ingredient_id }
+    
+    @ingredient_object = []
+    i_array.each{ |i| @ingredient_object << Ingredient.find_by(id: i) }
+    @ingredient_object
+    
+    # binding.pry
+    
+    
   end
 
   def list_favorite_recipes
@@ -162,7 +175,7 @@ class Main
     puts "===========      End        ========="
   end
 
-  # EARCH TESTING
+  # SEARCH TESTING
   def search_by_id
     puts "Input the id of the recipe you want to search: "
     recipe_id = gets.chomp
