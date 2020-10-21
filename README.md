@@ -8,7 +8,7 @@ Recipe Vault is a CLI platform that allows users to create, save and share recip
 
 1. Clone or Fork this repository
 2. Run 'bundle install' on command line
-3. Run 'ruby bin/run.rb' to start
+3. Run 'ruby main.rb' to start
 
 ## Deliverables
 ### User
