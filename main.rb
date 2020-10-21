@@ -115,8 +115,6 @@ class Main
     puts "\nIngredients: "
     @ingredient_object.each { |ingredient| puts "#{ingredient.name}"}
 
-    # puts "\nIngredients: \n#{@ingredient_object.name}"
-
     # SAVE RECIPE TO FAVORITES METHOD
     user_menu
   end
@@ -129,14 +127,13 @@ class Main
     ri_objects = RecipeIngredient.where(recipe_id: @recipe_object.id)
 
     # store ingredient ids in array
-    i_array = ri_objects.each.map{ |ingredient| ingredient.ingredient_id }
+    id_array = ri_objects.each.map{ |ingredient| ingredient.ingredient_id }
     
     @ingredient_object = []
-    i_array.each{ |i| @ingredient_object << Ingredient.find_by(id: i) }
+    id_array.each{ |i| @ingredient_object << Ingredient.find_by(id: i) }
     @ingredient_object
     
-    # binding.pry
-    
+    # binding.pry  
     
   end
 
