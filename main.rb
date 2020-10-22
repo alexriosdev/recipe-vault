@@ -16,7 +16,7 @@ class Main
 
   def test_prompt
     prompt =  TTY::Prompt.new()
-    response = prompt.ask("Hello there").downcase
+    response = prompt.ask("Hello there").titleize
     puts response
   end
 
@@ -132,7 +132,7 @@ class Main
     page_divider
 
     prompt = TTY::Prompt.new() 
-    all_recipes = Recipe.all.map { |recipe| recipe.name }
+    all_recipes = Recipe.all.map { |recipe| recipe.name.titleize }
 
     all_recipes << turn_back
 
@@ -144,7 +144,7 @@ class Main
     when turn_back
       user_menu
     else
-      @recipe_object = Recipe.all.find_by(name: recipe_name)
+      @recipe_object = Recipe.all.find_by(name: recipe_name.downcase)
       recipe_ingredient_association
       show_recipe_details   
     end     
@@ -152,11 +152,11 @@ class Main
 
   def show_recipe_details    
     page_divider
-    puts "\nRecipe Name: " + "\n#{@recipe_object.name.capitalize}".colorize(:yellow)
+    puts "\nRecipe Name: " + "\n#{@recipe_object.name.titleize}".colorize(:yellow)
     puts "\nDescription: \n#{@recipe_object.description}"
     puts "\nPreparation: \n#{@recipe_object.preparation}"
     puts "\nIngredients: "
-    @ingredient_object.each { |ingredient| puts "#{ingredient.name.capitalize}"}
+    @ingredient_object.each { |ingredient| puts "#{ingredient.name.titleize}"}
 
     favorite_options if @favorite_session
     detail_options if !@favorite_session
@@ -199,14 +199,13 @@ class Main
 
     if @favorite_recipes.empty?
       puts "Sorry #{@user.username}. it seems that you have no Favorite Recipes."
-      # WOULD YOU LIKE TO ADD OR CREATE ONE?
       user_menu
     else
       id_array = @favorite_recipes.each.map{ |recipe| recipe.recipe_id }
       @favorite_object = []
       id_array.each{ |id| @favorite_object << Recipe.find_by(id: id) } 
 
-      choices = @favorite_object.map { |recipe| recipe.name }
+      choices = @favorite_object.map { |recipe| recipe.name.titleize }
       choices << turn_back
 
       puts "\nVery well, #{@user.username}!"
@@ -217,7 +216,7 @@ class Main
       when turn_back
         user_menu
       else        
-        @recipe_object = Recipe.all.find_by(name: recipe_name)
+        @recipe_object = Recipe.all.find_by(name: recipe_name.downcase)
         recipe_ingredient_association
         show_recipe_details   
       end  
@@ -266,7 +265,7 @@ class Main
     prompt = TTY::Prompt.new()
     
     puts "\nAwesome! Let's get cookin'."
-    new_name = prompt.ask( "What's the name of your New Recipe?".colorize(:yellow) ).dowcase
+    new_name = prompt.ask( "What's the name of your New Recipe?".colorize(:yellow) ).downcase
     @recipe_create = Recipe.create(name: new_name)
 
     new_desc = prompt.ask( "Add a short Description to your recipe.".colorize(:yellow) )
@@ -281,7 +280,7 @@ class Main
 
     @recipe_object = Recipe.all.find_by(id: @recipe_create.id)
     puts "\n...aaaaand we're done!".colorize(:green)
-    puts "\nThis is what your creation looks like.".(:yellow)
+    puts "\nThis is what your creation looks like.".colorize(:yellow)
     recipe_ingredient_association
     show_recipe_details 
   end
@@ -293,62 +292,69 @@ class Main
     list_all_recipes
   end
 
+  def update_ingredients    
+    prompt = TTY::Prompt.new()
+    recipe_ingredient_association
+    choices = @ingredient_object.map { |i| i.name.titleize }
+    choices << "Add New Ingredients.".colorize(:green)
+    choices << turn_back
+
+    user_choice = prompt.select( "Select the ingredient that you'd like to change:".colorize(:yellow), choices)
+
+    case user_choice
+    when turn_back
+      show_recipe_details
+    when "Add New Ingredients.".colorize(:green)
+      name = prompt.ask("Please insert new ingredient:", default: "Tomato").downcase
+      # CREATE THE INGREDIENTS AND SAVE
+      new_ingredient = Ingredient.find_or_create_by(name: name)
+      # CREATE ASSOCIATION
+      RecipeIngredient.create(recipe_id: @recipe_object.id, ingredient_id: new_ingredient.id)
+      puts "Succesfully added #{name.titleize} to #{@recipe_object.name.titleize}".colorize(:green)
+      recipe_ingredient_association
+      show_recipe_details
+    else
+      i_id = @ingredient_object.map { |i| i.id if i.name == user_choice.downcase }.uniq[0]
+      new_name = prompt.ask( "Update Ingredient:".colorize(:yellow), value: user_choice).downcase
+      Ingredient.find_by(id: i_id).update(name: new_name)
+      puts "Succesfully updated #{user_choice} to #{new_name.titleize}".colorize(:green)
+      recipe_ingredient_association
+      show_recipe_details
+    end
+  end
+
   def update_recipe
     page_divider
     prompt = TTY::Prompt.new()
     query = "What would you like to change?".colorize(:yellow)
     user_choice = prompt.select(query, [
-      "Update Recipe Name",
-      "Update Description",
-      "Update Preparation",
-      "Update Ingredients",
+      "Recipe Name",
+      "Description",
+      "Preparation",
+      "Ingredients",
       turn_back
     ])    
     case user_choice
-    when "Update Name"
+    when "Recipe Name"
       new_name = prompt.ask( "Update Recipe Name:".colorize(:yellow), value: @recipe_object.name ).downcase
-      puts "Succesfully updated #{@recipe_object.name.capitalize} to #{new_name.capitalize}".colorize(:green)
+      puts "Succesfully updated #{@recipe_object.name.titleize} to #{new_name.titleize}".colorize(:green)
       @recipe_object.update(name: new_name)      
       show_recipe_details
-    when "Update Description"
+    when "Description"
       new_desc = prompt.ask( "Update Description:".colorize(:yellow), value: @recipe_object.description )
       puts "Succesfully updated #{@recipe_object.description} to #{new_desc}".colorize(:green)
       @recipe_object.update(description: new_desc) 
       show_recipe_details
-    when "Update Preparation"
+    when "Preparation"
       new_prep = prompt.ask( "Update Preparation:".colorize(:yellow), value: @recipe_object.preparation )
       puts "Succesfully updated #{@recipe_object.preparation} to #{new_prep}".colorize(:green)
       @recipe_object.update(preparation: new_prep) 
       show_recipe_details
-    when "Update Ingredients"
-      # WORK IN PROGRESS
-      # LIST ALL INGREDIENTS BELONGING TO RECIPE
-      # ADD BUTTON/BACK BUTTON
-      stay_tuned_message
-      update_recipe
-
-
-
-
-
-      # previous implementation
-      # recipe_ingredient_association
-      # i_names = @ingredient_object.map { |i| i.name }
-      # i_ids = @ingredient_object.map { |i| i.id }
-
-      # new_ing = prompt.ask( "What are the new ingredients?".colorize(:yellow), value: i_names.to_s)
-      # puts "Succesfully updated #{i_names.to_s} to #{new_ing}".colorize(:green)
-      # Ingredient.where(id: i_ids).update_all(name: new_ing)
-      # show_recipe_details    
-
-      # binding.pry
+    when "Ingredients"
+      update_ingredients
     else
       show_recipe_details      
     end
-
-
-    # stay_tuned_message
-    # user_menu
   end  
 
   def remove_from_favorites
@@ -415,6 +421,12 @@ class Main
     puts result.inspect.split(",")
   end
 
+end
+
+class String
+  def titleize
+    self.split(/ |\_/).map(&:capitalize).join(" ")
+  end
 end
 
 Main.new.run
