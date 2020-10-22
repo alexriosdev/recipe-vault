@@ -6,12 +6,12 @@ Recipe.destroy_all
 User.destroy_all
 
 10.times do
-  Ingredient.create( name: Faker::Food.ingredient )
+  Ingredient.create( name: Faker::Food.ingredient.downcase )
 end
 
 10.times do
   Recipe.create(
-    name: Faker::Food.dish, 
+    name: Faker::Food.dish.downcase, 
     description: Faker::Food.description,
     preparation: Faker::Lorem.paragraph(sentence_count: 2),
   )

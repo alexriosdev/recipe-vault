@@ -4,6 +4,7 @@ class Main
   
   def run
     # binding.pry
+
     welcome_message
     start_menu
   end
@@ -12,6 +13,12 @@ class Main
   private
   
   # INTERFACE MESSAGE METHODS
+
+  def test_prompt
+    prompt =  TTY::Prompt.new()
+    response = prompt.ask("Hello there").downcase
+    puts response
+  end
 
   def welcome_message
     puts "
@@ -27,15 +34,22 @@ class Main
     ██████╔╝█████╗  ██║     ██║██████╔╝█████╗      ██║   ██║███████║██║   ██║██║     ██║    
     ██╔══██╗██╔══╝  ██║     ██║██╔═══╝ ██╔══╝      ╚██╗ ██╔╝██╔══██║██║   ██║██║     ██║    
     ██║  ██║███████╗╚██████╗██║██║     ███████╗     ╚████╔╝ ██║  ██║╚██████╔╝███████╗██║    
-    ╚═╝  ╚═╝╚══════╝ ╚═════╝╚═╝╚═╝     ╚══════╝      ╚═══╝  ╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚═╝    
-                                                                                            
-    
-    ".colorize(:light_blue)
+    ╚═╝  ╚═╝╚══════╝ ╚═════╝╚═╝╚═╝     ╚══════╝      ╚═══╝  ╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚═╝                                                                                         
+    ".colorize(:light_green)
+    app_description
   end
 
   def exit_message
     puts "Thanks for using Recipe Vault!\nGoodbye.".colorize(:green)
     page_divider
+  end
+
+  def app_description
+    puts "
+    Recipe Vault is a CLI platform that allows users to create, 
+    save and share recipes with other users.
+    Recipe Vault also serves as a recipe search-engine,
+    giving users the option to search for a recipe based on the recipe name or their ingredients."
   end
 
   def page_divider
@@ -64,9 +78,9 @@ class Main
     prompt = TTY::Prompt.new()
     welcome =  "\nWelcome to Recipe Vault!".colorize(:light_blue)
     user_choice = prompt.select(welcome, [
-        "Login",
-        "Search Recipe", 
-        "Exit.".colorize(:red)
+      "Login",
+      "Search Recipe", 
+      "Exit.".colorize(:red)
     ])
     case user_choice
     when "Login"
@@ -83,7 +97,6 @@ class Main
     prompt = TTY::Prompt.new()
     response = prompt.ask("\nPlease enter a username: ").downcase
     @user = User.find_or_create_by(username: response)
-    # sleep(1)
     user_menu
   end
 
@@ -139,11 +152,11 @@ class Main
 
   def show_recipe_details    
     page_divider
-    puts "\nRecipe Name: " + "\n#{@recipe_object.name}".colorize(:yellow)
+    puts "\nRecipe Name: " + "\n#{@recipe_object.name.capitalize}".colorize(:yellow)
     puts "\nDescription: \n#{@recipe_object.description}"
     puts "\nPreparation: \n#{@recipe_object.preparation}"
     puts "\nIngredients: "
-    @ingredient_object.each { |ingredient| puts "#{ingredient.name}"}
+    @ingredient_object.each { |ingredient| puts "#{ingredient.name.capitalize}"}
 
     favorite_options if @favorite_session
     detail_options if !@favorite_session
@@ -216,14 +229,14 @@ class Main
     query =  "What would you like to do with this recipe?\n".colorize(:yellow)
     user_choice = prompt.select(query, [
       "Fix or Update Recipe",
-      "Delete Recipe",
+      "Remove From Favorites",
       turn_back
     ])
     case user_choice
     when "Fix or Update Recipe"
       update_recipe
-    when "Delete Recipe"
-      delete_recipe
+    when "Remove From Favorites"
+      remove_from_favorites
     else
       list_favorite_recipes
     end
@@ -231,56 +244,131 @@ class Main
 
   # SQL METHODS
 
+  # DEVELOP NEW METHOD FOR THE INGREDIENT RESPONSE
+  def create_new_ingredients    
+    prompt = TTY::Prompt.new()
+    ingredient_collection = []
+    n = prompt.ask("How many ingredients does this recipe need?".colorize(:yellow), default: 2, convert: :integer)
+    n.times do |count|
+      name = prompt.ask("Please insert ingredient ##{count + 1}:", default: "Tomato").downcase
+      # CREATE THE INGREDIENTS AND SAVE
+      new_ingredient = Ingredient.find_or_create_by(name: name)
+      # CREATE ASSOCIATION
+      RecipeIngredient.create(recipe_id: @recipe_create.id, ingredient_id: new_ingredient.id)
+      count += 1
+    end
+  end
+
   def create_new_recipe
-    page_divider
-    prompt = prompt = TTY::Prompt.new()
+    @favorite_session = true
 
+    page_divider
+    prompt = TTY::Prompt.new()
+    
     puts "\nAwesome! Let's get cookin'."
-    new_name = prompt.ask( "What's the name of your New Recipe?".colorize(:yellow) ) 
-    new_desc = prompt.ask( "Add a short description to your recipe.".colorize(:yellow) )    
-    ing_name = prompt.ask( "Please list the ingridients.".colorize(:yellow) )
-    new_prep = prompt.ask( "Could explain the preparation steps?".colorize(:yellow) )
-    
-    r = Recipe.create(
-      name: new_name, 
-      description: new_desc,
-      preparation: new_prep,
-    )
-    i = Ingredient.create(name: ing_name)
-    ri = RecipeIngredient.create(recipe_id: r.id, ingredient_id: i.id)
-    f = Favorite.create(user_id: @user.id, recipe_id: r.id)
+    new_name = prompt.ask( "What's the name of your New Recipe?".colorize(:yellow) ).dowcase
+    @recipe_create = Recipe.create(name: new_name)
 
-    page_divider
-    puts "\nName: " + "\n#{new_name}".colorize(:yellow)
-    puts "\nDescription: \n#{new_desc}"
-    puts "\nIngredients:\n#{ing_name}"
-    puts "\nPreparation: \n#{new_prep}"
-    
-    puts "\n...aaaaand we're done!".colorize(:yellow) + "\nThis is what your creation looks like."
-    favorite_options
+    new_desc = prompt.ask( "Add a short Description to your recipe.".colorize(:yellow) )
+    @recipe_create.update(description: new_desc)
 
+    create_new_ingredients  
+
+    new_prep = prompt.ask( "Could you explain the Preparation steps?".colorize(:yellow) )
+    @recipe_create.update(preparation: new_prep)
+
+    Favorite.create(user_id: @user.id, recipe_id: @recipe_create.id)
+
+    @recipe_object = Recipe.all.find_by(id: @recipe_create.id)
+    puts "\n...aaaaand we're done!".colorize(:green)
+    puts "\nThis is what your creation looks like.".(:yellow)
+    recipe_ingredient_association
+    show_recipe_details 
   end
 
   def add_to_favorites
-    stay_tuned_message
-    user_menu
+    page_divider
+    Favorite.find_or_create_by(user_id: @user.id, recipe_id:@recipe_object.id)
+    puts "Succesfully added #{@recipe_object.name} to your favorites!".colorize(:green)
+    list_all_recipes
   end
 
   def update_recipe
-    stay_tuned_message
-    user_menu
-  end
+    page_divider
+    prompt = TTY::Prompt.new()
+    query = "What would you like to change?".colorize(:yellow)
+    user_choice = prompt.select(query, [
+      "Update Recipe Name",
+      "Update Description",
+      "Update Preparation",
+      "Update Ingredients",
+      turn_back
+    ])    
+    case user_choice
+    when "Update Name"
+      new_name = prompt.ask( "Update Recipe Name:".colorize(:yellow), value: @recipe_object.name ).downcase
+      puts "Succesfully updated #{@recipe_object.name.capitalize} to #{new_name.capitalize}".colorize(:green)
+      @recipe_object.update(name: new_name)      
+      show_recipe_details
+    when "Update Description"
+      new_desc = prompt.ask( "Update Description:".colorize(:yellow), value: @recipe_object.description )
+      puts "Succesfully updated #{@recipe_object.description} to #{new_desc}".colorize(:green)
+      @recipe_object.update(description: new_desc) 
+      show_recipe_details
+    when "Update Preparation"
+      new_prep = prompt.ask( "Update Preparation:".colorize(:yellow), value: @recipe_object.preparation )
+      puts "Succesfully updated #{@recipe_object.preparation} to #{new_prep}".colorize(:green)
+      @recipe_object.update(preparation: new_prep) 
+      show_recipe_details
+    when "Update Ingredients"
+      # WORK IN PROGRESS
+      # LIST ALL INGREDIENTS BELONGING TO RECIPE
+      # ADD BUTTON/BACK BUTTON
+      stay_tuned_message
+      update_recipe
 
-  def delete_recipe    
-    stay_tuned_message
-    user_menu
 
-    # Work in progress 
-    # recipe = Recipe.find_by(name:"")
-    # recipe.destroy
 
-  end
-  
+
+
+      # previous implementation
+      # recipe_ingredient_association
+      # i_names = @ingredient_object.map { |i| i.name }
+      # i_ids = @ingredient_object.map { |i| i.id }
+
+      # new_ing = prompt.ask( "What are the new ingredients?".colorize(:yellow), value: i_names.to_s)
+      # puts "Succesfully updated #{i_names.to_s} to #{new_ing}".colorize(:green)
+      # Ingredient.where(id: i_ids).update_all(name: new_ing)
+      # show_recipe_details    
+
+      # binding.pry
+    else
+      show_recipe_details      
+    end
+
+
+    # stay_tuned_message
+    # user_menu
+  end  
+
+  def remove_from_favorites
+    # DELETES RECIPE ASSOCIATION NOT THE RECIPE ITSELF
+    prompt = TTY::Prompt.new()
+    query = "Are you sure?".colorize(:red)
+    user_choice = prompt.select(query, [
+      "No.",
+      "Yes."
+    ])
+    case user_choice
+    when "Yes."
+      favorite_object = Favorite.find_by(user_id: @user.id, recipe_id: @recipe_object.id)
+      favorite_object.destroy
+      puts "Succesfully removed #{@recipe_object.name} to your favorites!".colorize(:green)
+      list_favorite_recipes
+    else
+      show_recipe_details
+    end
+  end  
 
   def search_recipe
     stay_tuned_message
