@@ -4,6 +4,7 @@ class Main
   
   def run
     # binding.pry
+    # String.color_samples
 
     welcome_message
     start_menu
@@ -152,10 +153,13 @@ class Main
 
   def show_recipe_details    
     page_divider
-    puts "\nRecipe Name: " + "\n#{@recipe_object.name.titleize}".colorize(:yellow)
-    puts "\nDescription: \n#{@recipe_object.description}"
-    puts "\nPreparation: \n#{@recipe_object.preparation}"
-    puts "\nIngredients: "
+    puts "\nRecipe Name: ".colorize(:light_white)
+    puts "#{@recipe_object.name.titleize}".colorize(:yellow)
+    puts "\nDescription: ".colorize(:light_white)
+    puts "#{@recipe_object.description}"
+    puts "\nPreparation: ".colorize(:light_white)
+    puts "#{@recipe_object.preparation}"
+    puts "\nIngredients: ".colorize(:light_white)
     @ingredient_object.each { |ingredient| puts "#{ingredient.name.titleize}"}
 
     favorite_options if @favorite_session
