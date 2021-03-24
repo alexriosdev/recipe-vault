@@ -5,6 +5,7 @@ class Main
   def run
     # binding.pry
     # String.color_samples
+    # search_recipe
 
     welcome_message
     start_menu
@@ -46,11 +47,7 @@ class Main
   end
 
   def app_description
-    puts "
-    Recipe Vault is a CLI platform that allows users to create, 
-    save and share recipes with other users.
-    Recipe Vault also serves as a recipe search-engine,
-    giving users the option to search for a recipe based on the recipe name or their ingredients."
+    puts "    All your favorite recipes in one place!"
   end
 
   def page_divider
@@ -80,7 +77,7 @@ class Main
     welcome =  "\nWelcome to Recipe Vault!".colorize(:light_blue)
     user_choice = prompt.select(welcome, [
       "Login",
-      "Search Recipe", 
+      # "Search Recipe", 
       "Exit.".colorize(:red)
     ])
     case user_choice
@@ -269,15 +266,15 @@ class Main
     prompt = TTY::Prompt.new()
     
     puts "\nAwesome! Let's get cookin'."
-    new_name = prompt.ask( "What's the name of your New Recipe?".colorize(:yellow) ).downcase
+    new_name = prompt.ask( "What's the name of your New Recipe?\n".colorize(:yellow) ).downcase
     @recipe_create = Recipe.create(name: new_name)
 
-    new_desc = prompt.ask( "Add a short Description to your recipe.".colorize(:yellow) )
+    new_desc = prompt.ask( "Add a short Description to your recipe.\n".colorize(:yellow) )
     @recipe_create.update(description: new_desc)
 
     create_new_ingredients  
 
-    new_prep = prompt.ask( "Could you explain the Preparation steps?".colorize(:yellow) )
+    new_prep = prompt.ask( "Could you explain the Preparation steps?\n".colorize(:yellow) )
     @recipe_create.update(preparation: new_prep)
 
     Favorite.create(user_id: @user.id, recipe_id: @recipe_create.id)
@@ -340,18 +337,20 @@ class Main
     ])    
     case user_choice
     when "Recipe Name"
-      new_name = prompt.ask( "Update Recipe Name:".colorize(:yellow), value: @recipe_object.name ).downcase
+      new_name = prompt.ask( "Update Recipe Name:\n".colorize(:yellow), value: @recipe_object.name ).downcase
       puts "Succesfully updated #{@recipe_object.name.titleize} to #{new_name.titleize}".colorize(:green)
       @recipe_object.update(name: new_name)      
       show_recipe_details
     when "Description"
-      new_desc = prompt.ask( "Update Description:".colorize(:yellow), value: @recipe_object.description )
-      puts "Succesfully updated #{@recipe_object.description} to #{new_desc}".colorize(:green)
+      new_desc = prompt.ask( "Update Description:\n".colorize(:yellow), value: @recipe_object.description )
+      # puts "Succesfully updated #{@recipe_object.description} to #{new_desc}".colorize(:green)
+      puts "Succesfully updated recipe description!".colorize(:green)
       @recipe_object.update(description: new_desc) 
       show_recipe_details
     when "Preparation"
-      new_prep = prompt.ask( "Update Preparation:".colorize(:yellow), value: @recipe_object.preparation )
-      puts "Succesfully updated #{@recipe_object.preparation} to #{new_prep}".colorize(:green)
+      new_prep = prompt.ask( "Update Preparation:\n".colorize(:yellow), value: @recipe_object.preparation )
+      # puts "Succesfully updated #{@recipe_object.preparation} to #{new_prep}".colorize(:green)
+      puts "Succesfully updated recipe preparation!".colorize(:green)
       @recipe_object.update(preparation: new_prep) 
       show_recipe_details
     when "Ingredients"
@@ -378,9 +377,42 @@ class Main
     else
       show_recipe_details
     end
-  end  
+  end
+
+  def search_by_name
+    prompt = TTY::Prompt.new()
+    query = "Please type a name to search:\n"   
+    user_choice = prompt.ask(query)
+    @recipe_object = Recipe.where(['name LIKE ?', "%#{user_choice}%"])    
+    if @recipe_object.exists?
+      show_recipe_details
+    elsif @recipe_object == nil
+      "Sorry it seems that #{user_choice.titleize} is not our database."
+      search_recipe
+    end    
+  end
 
   def search_recipe
+    # page_divider
+    # prompt = TTY::Prompt.new()
+    # query = "Please choose an option. \n".colorize(:yellow)    
+    # user_choice = prompt.select(query,[
+    #   "Search Recipe by Name",
+    #   "Search Recipe by Ingredient",
+    #   turn_back
+    # ])
+    # case user_choice
+    # when "Search Recipe by Name"
+    #   search_by_name
+    # when "Search Recipe by Ingredient"
+    #   stay_tuned_message
+    #   start_menu
+    # else
+    #   start_menu
+    # end
+    
+    # binding.pry
+
     stay_tuned_message
     if @user_session
       user_menu
@@ -415,13 +447,6 @@ class Main
     puts "Input the id of the recipe you want to search: "
     recipe_id = gets.chomp
     result = Recipe.find_by(id: recipe_id)
-    puts result.inspect.split(",")
-  end
-
-  def search_by_name
-    puts "Input the name of the recipe you want to search: "
-    recipe_name = gets.chomp
-    result = Recipe.find_by(name: recipe_name)
     puts result.inspect.split(",")
   end
 
